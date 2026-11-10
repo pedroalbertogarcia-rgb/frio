@@ -101,6 +101,22 @@ svg text{font-family:var(--body);font-size:9px;fill:var(--muted);font-variant-nu
 .mrow .mw span{font-size:13.5px;color:var(--muted)}
 .mrow .st{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
 .mrow.on .st{color:var(--accent)}
+.mrow i{width:48px;height:48px}
+.mrow.on i{background:none;border:0;height:54px}
+.mrow i svg,.flyb svg{display:block;width:100%;height:100%}
+.mrow.wait i{visibility:hidden}
+.mrow.land i{animation:land .45s ease-out}
+.fly{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center}
+.flybg{position:absolute;inset:0;background:#000000eb;transition:opacity .8s}
+.flybox{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;padding:20px}
+.flyt{font-family:var(--display);font-weight:800;font-size:30px;color:var(--accent);transition:opacity .3s}
+.flyn{font-family:var(--display);font-weight:800;font-size:26px;transition:opacity .3s}
+.flym{width:190px;height:213px;transition:transform .8s cubic-bezier(.5,-.25,.3,1);will-change:transform}
+.flyb{width:100%;height:100%;animation:bounce .9s cubic-bezier(.3,1.5,.5,1) both}
+.fly.go .flybg,.fly.go .flyt,.fly.go .flyn{opacity:0}
+@keyframes bounce{0%{transform:scale(0) rotate(-25deg)}55%{transform:scale(1.18) rotate(6deg)}72%{transform:scale(.92) rotate(-3deg)}86%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes land{0%{transform:scale(1.5)}60%{transform:scale(.88)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.flyb,.mrow.land i{animation:none}}
 .prize{margin:0;font-size:15px;color:var(--ember);font-weight:600}
 .pop .new{background:var(--accent);color:var(--on-accent);border-radius:14px;padding:10px 12px;font-weight:700}
 .link{background:none;border:0;color:var(--muted);font-weight:600;text-decoration:underline;min-height:44px;align-self:center}
@@ -132,7 +148,6 @@ svg text{font-family:var(--body);font-size:9px;fill:var(--muted);font-variant-nu
     <div class="big" id="endTime"></div>
     <h2 id="endTitle"></h2>
     <p class="cmp" id="endCmp"></p>
-    <p class="new" id="endMedal" hidden></p>
     <p class="lead" id="endMsg"></p>
     <div class="col">
       <button class="btn primary" id="saveBtn" type="button">Guardar registo de hoje</button>

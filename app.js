@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var START="2026-11-13", END="2026-12-04";
+var START="2026-11-11", END="2026-12-04";
 var OPEN=[
  "O frio é um professor honesto.",
  "Respira. Tu és mais forte do que pensas.",
@@ -67,7 +67,7 @@ var MEDALS=[
  ["t",120,"Aguentar 2 minutos","Mente Calma"],["t",180,"Aguentar 3 minutos","Domínio"],["t",300,"Aguentar 5 minutos","Gelo nas Veias"],
  ["t",600,"Aguentar 10 minutos","Lenda do Frio"],
  ["d",3,"3 dias seguidos com registo","Ritmo"],["d",7,"7 dias seguidos com registo","Semana de Ferro"],
- ["d",14,"14 dias seguidos com registo","Hábito"],["d",22,"22 dias seguidos com registo","Desafio Completo"]
+ ["d",14,"14 dias seguidos com registo","Hábito"],["d",24,"24 dias seguidos com registo","Desafio Completo"]
 ];
 function standing(list){
   var best=0,days={};list.forEach(function(l){if(l.secs>best)best=l.secs;days[l.date]=1});
@@ -90,7 +90,7 @@ function medalCard(){
     }else h+='<div class="next">Todas conquistadas.</div>';
     list.forEach(function(m,i){
       var on=val>=m[1];
-      h+='<div class="mrow'+(on?" on":"")+'"><i>'+(i+1)+'</i><div class="mw"><b>'+m[3]+'</b><span>'+m[2]+'</span></div><div class="st">'+(on?"Conquistada":"Por conquistar")+'</div></div>';
+      h+='<div class="mrow'+(on?" on":"")+'"><i data-medal="'+m[3]+'">'+(on?medalSVG(m):(i+1))+'</i><div class="mw"><b>'+m[3]+'</b><span>'+m[2]+'</span></div><div class="st">'+(on?"Conquistada":"Por conquistar")+'</div></div>';
     });
     return h+'</div>';
   }
@@ -99,6 +99,50 @@ function medalCard(){
    +track("t","Tempo no frio",st.best?"O teu melhor tempo: "+clock(st.best)+". Cada marca vale uma medalha.":"Aguenta cada vez mais. Cada marca vale uma medalha.")
    +track("d","Dias seguidos",st.top?"A tua melhor sequência: "+st.top+(st.top===1?" dia":" dias")+". Cada marca vale uma medalha.":"Não falhes um dia. Cada marca vale uma medalha.")
    +'</div>';
+}
+function medalSVG(m){
+  var n=m[0]==="t"?(m[1]<60?m[1]:m[1]/60):m[1],u=m[0]==="d"?"dias":(m[1]<60?"segundos":(m[1]===60?"minuto":"minutos")),leaves="";
+  for(var i=0;i<18;i++){
+    var deg=-60+i*(300/17),a=deg*Math.PI/180,x=(50+38*Math.cos(a)).toFixed(1),y=(62+38*Math.sin(a)).toFixed(1);
+    leaves+='<ellipse cx="'+x+'" cy="'+y+'" rx="5.2" ry="2.3" transform="rotate('+Math.round(deg+90+(i<9?-38:38))+' '+x+' '+y+')"/>';
+  }
+  var f="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;fill:#4a3000;font-weight:800;";
+  return '<svg viewBox="0 0 100 112" aria-hidden="true"><defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".5" stop-color="#f2c230"/><stop offset="1" stop-color="#c8920a"/></linearGradient></defs>'
+   +'<path fill="url(#mg)" fill-rule="evenodd" d="M34 2h32v22H34zM40 7h20v7H40z"/>'
+   +'<circle cx="50" cy="62" r="48" fill="url(#mg)"/><circle cx="50" cy="62" r="45.5" fill="none" stroke="#b07c00" stroke-width="1"/>'
+   +'<g fill="#dba716" stroke="#a87400" stroke-width=".6">'+leaves+'</g>'
+   +'<circle cx="50" cy="62" r="29" fill="#ffe27a" stroke="#b07c00" stroke-width="1"/>'
+   +'<text x="50" y="68" text-anchor="middle" style="'+f+'font-size:'+(String(n).length>1?27:31)+'px">'+n+'</text>'
+   +'<text x="50" y="79" text-anchor="middle" style="'+f+'font-size:8.5px">'+u+'</text></svg>';
+}
+function celebrate(list){
+  if(!list.length)return;
+  var slots={};
+  Array.prototype.forEach.call(document.querySelectorAll("[data-medal]"),function(el){slots[el.getAttribute("data-medal")]=el});
+  list.forEach(function(m){if(slots[m[3]])slots[m[3]].parentNode.classList.add("wait")});
+  var still=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  (function next(){
+    var m=list.shift();if(!m)return;
+    var slot=slots[m[3]],ov=document.createElement("div");
+    ov.className="fly";
+    ov.innerHTML='<div class="flybg"></div><div class="flybox"><div class="flyt">Nova medalha</div><div class="flym"><div class="flyb">'+medalSVG(m)+'</div></div><div class="flyn"></div></div>';
+    ov.querySelector(".flyn").textContent=m[3];
+    document.body.appendChild(ov);
+    if(slot&&slot.scrollIntoView)slot.scrollIntoView({block:"center"});
+    setTimeout(function(){
+      var fly=slot&&!still,med=ov.querySelector(".flym");
+      if(fly){
+        var a=med.getBoundingClientRect(),b=slot.getBoundingClientRect();
+        ov.classList.add("go");
+        med.style.transform="translate("+(b.left+b.width/2-a.left-a.width/2)+"px,"+(b.top+b.height/2-a.top-a.height/2)+"px) scale("+(b.width/a.width)+")";
+      }
+      setTimeout(function(){
+        if(slot){slot.parentNode.classList.remove("wait");slot.parentNode.classList.add("land")}
+        if(ov.parentNode)ov.parentNode.removeChild(ov);
+        next();
+      },fly?850:0);
+    },2000);
+  })();
 }
 function tier(s){
   if(s<30)return "Cada segundo debaixo de água fria conta.";
@@ -119,13 +163,11 @@ function fillEnd(){
   else if(s>=prevBest-2){title="Mantiveste o ritmo";cmp="Igual ao dia anterior ("+clock(prevBest)+", "+nice(prevDay)+"). A consistência é que conta."}
   else{title="Hoje ficaste abaixo";cmp="Menos "+dur(prevBest-s)+" do que no dia anterior ("+clock(prevBest)+", "+nice(prevDay)+"). Apareceste, e amanhã voltas a subir."}
   $("endTime").textContent=clock(s);$("endTitle").textContent=title;$("endCmp").textContent=cmp;$("endMsg").textContent=tier(s);
-  var had=earned(logs),now=earned(logs.concat([{date:t,secs:s}])),fresh=now.filter(function(n){return had.indexOf(n)<0});
-  $("endMedal").hidden=!fresh.length;$("endMedal").textContent=fresh.length?(fresh.length>1?"Novas medalhas: ":"Nova medalha: ")+fresh.join(", "):"";
 }
 function intro(){
   var t=today(),n=t<=START?TOTAL:(t>END?0:diff(t,END)+1);
   $("introTitle").textContent=n?n+" dias de frio":"Desafio do Frio";
-  $("introLead").textContent="De sexta, 13 de novembro, a 4 de dezembro: um duche ou banho de água fria por dia. Tocas em Iniciar, ficas o tempo que conseguires, paras e guardas o registo.";
+  $("introLead").textContent="De quarta, 11 de novembro, a 4 de dezembro: um duche ou banho de água fria por dia. Tocas em Iniciar, ficas o tempo que conseguires, paras e guardas o registo.";
   $("introSub").textContent=n?"O que podes ganhar em "+n+" dias:":"O que este desafio te dá:";
   $("introDisc").textContent=n?n+" dias seguidos a escolher o difícil: disciplina que fica.":"Dias seguidos a escolher o difícil: disciplina que fica.";
   $("introPop").hidden=false;
@@ -147,9 +189,10 @@ $("discardBtn").addEventListener("click",function(){pending=null;lset("frio.pend
 $("saveBtn").addEventListener("click",function(){
   if(!pending)return;
   var l={id:"r"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),date:today(),secs:pending.secs,at:Date.now()};
-  logs.push(l);keep();
+  var had=earned(logs);logs.push(l);keep();
   message="Guardado: "+clock(l.secs)+". "+pick(DONE);
   pending=null;lset("frio.pending",null);paint();render();
+  var has=earned(logs);celebrate(MEDALS.filter(function(m){return had.indexOf(m[3])<0&&has.indexOf(m[3])>=0}));
 });
 
 /* ---------- evolução ---------- */
@@ -164,7 +207,7 @@ function chart(per){
   DAYS.forEach(function(d,i){
     var v=per[d]||0,h=v?Math.max(2,ph*v/top):1.5,x=L+i*bw+1;
     o+='<rect class="bar'+(v?"":" zero")+(d===t?" today":"")+'" x="'+x.toFixed(1)+'" y="'+(T+ph-h).toFixed(1)+'" width="'+(bw-2).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1.5"><title>'+nice(d)+": "+(v?dur(v):"sem registo")+'</title></rect>';
-    if(i%7===0||i===TOTAL-1)o+='<text x="'+(x+(bw-2)/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+nice(d)+'</text>';
+    if((i%7===0&&TOTAL-1-i>3)||i===TOTAL-1)o+='<text x="'+(x+(bw-2)/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+nice(d)+'</text>';
   });
   return o+'</svg>';
 }
@@ -172,7 +215,7 @@ function render(){
   var t=today(),per={},tot=0,best=0;
   logs.forEach(function(l){per[l.date]=(per[l.date]||0)+l.secs;tot+=l.secs;if(l.secs>best)best=l.secs});
   var c=per[t]?t:addDays(t,-1),streak=0;while(per[c]){streak++;c=addDays(c,-1)}
-  $("dayline").textContent=t<START?"Começa sexta, 13 nov":(t>END?"Desafio concluído":"Dia "+(dayIndex()+1)+" de "+TOTAL);
+  $("dayline").textContent=t<START?"Começa quarta, 11 nov":(t>END?"Desafio concluído":"Dia "+(dayIndex()+1)+" de "+TOTAL);
   var got=earned(logs);
   var list=logs.slice().sort(function(a,b){return a.date===b.date?b.at-a.at:(a.date<b.date?1:-1)});
   var h='<div class="tiles">'
