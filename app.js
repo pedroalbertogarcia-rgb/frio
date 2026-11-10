@@ -62,6 +62,44 @@ function paint(){
   var show=!!pending&&!run;$("endPop").hidden=!show;if(show)fillEnd();
   $("msg").textContent=run?"Respira devagar. Estás a conseguir.":message;
 }
+var MEDALS=[
+ ["t",10,"Aguentar 10 segundos","Primeira Faísca"],["t",30,"Aguentar 30 segundos","Coragem"],["t",60,"Aguentar 1 minuto","Sangue-Frio"],
+ ["t",120,"Aguentar 2 minutos","Mente Calma"],["t",180,"Aguentar 3 minutos","Domínio"],["t",300,"Aguentar 5 minutos","Gelo nas Veias"],
+ ["t",600,"Aguentar 10 minutos","Lenda do Frio"],
+ ["d",3,"3 dias seguidos com registo","Ritmo"],["d",7,"7 dias seguidos com registo","Semana de Ferro"],
+ ["d",14,"14 dias seguidos com registo","Hábito"],["d",22,"22 dias seguidos com registo","Desafio Completo"]
+];
+function standing(list){
+  var best=0,days={};list.forEach(function(l){if(l.secs>best)best=l.secs;days[l.date]=1});
+  var run=0,top=0,prev="";Object.keys(days).sort().forEach(function(d){run=(prev&&addDays(prev,1)===d)?run+1:1;if(run>top)top=run;prev=d});
+  return {best:best,top:top};
+}
+function earned(list){
+  var st=standing(list);
+  return MEDALS.filter(function(m){return (m[0]==="t"?st.best:st.top)>=m[1]}).map(function(m){return m[3]});
+}
+function medalCard(){
+  var st=standing(logs),got=earned(logs);
+  function track(kind,title,sub){
+    var list=MEDALS.filter(function(m){return m[0]===kind}),val=kind==="t"?st.best:st.top,next=null;
+    list.forEach(function(m){if(!next&&val<m[1])next=m});
+    var h='<div class="track"><h3>'+title+'</h3><div class="sub">'+sub+'</div>';
+    if(next){
+      var gap=next[1]-val,left=kind==="t"?dur(gap):gap+(gap===1?" dia":" dias");
+      h+='<div class="next">Próxima: '+next[3]+'. '+(gap===1&&kind==="d"?"Falta ":"Faltam ")+left+'.<div class="barm"><i style="width:'+Math.round(100*val/next[1])+'%"></i></div></div>';
+    }else h+='<div class="next">Todas conquistadas.</div>';
+    list.forEach(function(m,i){
+      var on=val>=m[1];
+      h+='<div class="mrow'+(on?" on":"")+'"><i>'+(i+1)+'</i><div class="mw"><b>'+m[3]+'</b><span>'+m[2]+'</span></div><div class="st">'+(on?"Conquistada":"Por conquistar")+'</div></div>';
+    });
+    return h+'</div>';
+  }
+  return '<div class="card"><div class="mhead"><h2>Medalhas</h2><div class="mcount">'+got.length+' de '+MEDALS.length+'</div></div>'
+   +'<p class="prize">Os 3 com mais medalhas ganham um almoço em Estocolmo. Os tempos vão ser confirmados.</p>'
+   +track("t","Tempo no frio",st.best?"O teu melhor tempo: "+clock(st.best)+". Cada marca vale uma medalha.":"Aguenta cada vez mais. Cada marca vale uma medalha.")
+   +track("d","Dias seguidos",st.top?"A tua melhor sequência: "+st.top+(st.top===1?" dia":" dias")+". Cada marca vale uma medalha.":"Não falhes um dia. Cada marca vale uma medalha.")
+   +'</div>';
+}
 function tier(s){
   if(s<30)return "Cada segundo debaixo de água fria conta.";
   if(s<60)return "Quase um minuto. O teu corpo já está a aprender.";
@@ -81,6 +119,8 @@ function fillEnd(){
   else if(s>=prevBest-2){title="Mantiveste o ritmo";cmp="Igual ao dia anterior ("+clock(prevBest)+", "+nice(prevDay)+"). A consistência é que conta."}
   else{title="Hoje ficaste abaixo";cmp="Menos "+dur(prevBest-s)+" do que no dia anterior ("+clock(prevBest)+", "+nice(prevDay)+"). Apareceste, e amanhã voltas a subir."}
   $("endTime").textContent=clock(s);$("endTitle").textContent=title;$("endCmp").textContent=cmp;$("endMsg").textContent=tier(s);
+  var had=earned(logs),now=earned(logs.concat([{date:t,secs:s}])),fresh=now.filter(function(n){return had.indexOf(n)<0});
+  $("endMedal").hidden=!fresh.length;$("endMedal").textContent=fresh.length?(fresh.length>1?"Novas medalhas: ":"Nova medalha: ")+fresh.join(", "):"";
 }
 function intro(){
   var t=today(),n=t<=START?TOTAL:(t>END?0:diff(t,END)+1);
@@ -133,12 +173,14 @@ function render(){
   logs.forEach(function(l){per[l.date]=(per[l.date]||0)+l.secs;tot+=l.secs;if(l.secs>best)best=l.secs});
   var c=per[t]?t:addDays(t,-1),streak=0;while(per[c]){streak++;c=addDays(c,-1)}
   $("dayline").textContent=t<START?"Começa sexta, 13 nov":(t>END?"Desafio concluído":"Dia "+(dayIndex()+1)+" de "+TOTAL);
+  var got=earned(logs);
   var list=logs.slice().sort(function(a,b){return a.date===b.date?b.at-a.at:(a.date<b.date?1:-1)});
   var h='<div class="tiles">'
    +'<div class="tile"><b>'+dur(tot)+'</b><span>Total no frio</span></div>'
    +'<div class="tile"><b>'+(best?clock(best):"–")+'</b><span>Melhor tempo</span></div>'
    +'<div class="tile"><b>'+streak+'</b><span>Dias seguidos</span></div></div>'
    +'<div class="card"><h2>Tempo no frio por dia</h2>'+chart(per)+'</div>'
+   +medalCard()
    +'<div class="card"><h2>Registos</h2>';
   if(!list.length)h+='<p class="muted" style="margin:0">Ainda sem registos. O primeiro é o mais difícil.</p>';
   else{h+='<ul class="logs">';list.forEach(function(l){

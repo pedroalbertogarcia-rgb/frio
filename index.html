@@ -84,6 +84,25 @@ svg text{font-family:var(--body);font-size:9px;fill:var(--muted);font-variant-nu
 .pop .col{display:flex;flex-direction:column;gap:10px}
 .foot{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:var(--muted);font-size:14px}
 .foot a{color:var(--muted);font-weight:600;min-height:44px;display:inline-flex;align-items:center}
+.mhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.mhead h2{margin:0}
+.mcount{font-family:var(--display);font-weight:800;font-size:22px;color:var(--accent);font-variant-numeric:tabular-nums}
+.track{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.track h3{margin:0;font-family:var(--display);font-size:17px}
+.track .sub{font-size:14px;color:var(--muted);margin:2px 0 10px}
+.next{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:6px;font-size:15px;font-weight:600}
+.next .barm{height:8px;border-radius:8px;background:var(--line);margin-top:9px;overflow:hidden}
+.next .barm i{display:block;height:100%;background:var(--accent);border-radius:8px}
+.mrow{display:flex;align-items:center;gap:12px;padding:8px 0}
+.mrow i{width:40px;height:40px;flex:none;border-radius:50%;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--display);font-weight:800;font-size:16px;color:var(--muted)}
+.mrow.on i{background:var(--accent);border:2px solid var(--ember);color:var(--on-accent)}
+.mrow .mw{flex:1;min-width:0}
+.mrow .mw b{display:block;font-size:16px}
+.mrow .mw span{font-size:13.5px;color:var(--muted)}
+.mrow .st{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
+.mrow.on .st{color:var(--accent)}
+.prize{margin:0;font-size:15px;color:var(--ember);font-weight:600}
+.pop .new{background:var(--accent);color:var(--on-accent);border-radius:14px;padding:10px 12px;font-weight:700}
 .link{background:none;border:0;color:var(--muted);font-weight:600;text-decoration:underline;min-height:44px;align-self:center}
 </style>
 </head>
@@ -113,6 +132,7 @@ svg text{font-family:var(--body);font-size:9px;fill:var(--muted);font-variant-nu
     <div class="big" id="endTime"></div>
     <h2 id="endTitle"></h2>
     <p class="cmp" id="endCmp"></p>
+    <p class="new" id="endMedal" hidden></p>
     <p class="lead" id="endMsg"></p>
     <div class="col">
       <button class="btn primary" id="saveBtn" type="button">Guardar registo de hoje</button>
@@ -128,11 +148,13 @@ svg text{font-family:var(--body);font-size:9px;fill:var(--muted);font-variant-nu
     <p class="cmp" id="introSub"></p>
     <ul>
       <li>Menos stress nas horas a seguir ao frio.</li>
-      <li>Menos faltas por doença: num estudo com 3000 pessoas, quem acabava o duche com água fria faltou 29% menos ao trabalho.</li>
+      <li>Um coração mais calmo depois do frio: nos estudos, o ritmo cardíaco baixa a seguir à exposição.</li>
       <li>Sinais de melhor sono e de melhor qualidade de vida.</li>
       <li id="introDisc"></li>
     </ul>
     <p class="muted small">Resultados de estudos com adultos saudáveis.</p>
+    <p class="cmp">Prémio: os 3 com mais medalhas ganham um almoço em Estocolmo, num restaurante escolhido pelos guias.</p>
+    <p>Os tempos vão ser confirmados. Regista só o que fazes.</p>
     <p class="lead">O frio é um professor honesto. Entra calmo, sai mais forte.</p>
     <button class="btn primary" id="introGo" type="button">Aceito o desafio</button>
   </div>
