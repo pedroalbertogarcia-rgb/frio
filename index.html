@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b0907">
+<meta name="description" content="Cronómetro e registo diário para um desafio de exposição ao frio.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Frio">
+<title>Desafio do Frio</title>
+<style>
+/* Layout: one column for a phone. A huge round button first, then the chart per day, then the list. Black and orange only. */
+:root{
+  --bg:#0b0907; --surface:#17120d; --ink:#fff3e6; --muted:#b39a82; --line:#33261a;
+  --accent:#ff7a1a; --accent-deep:#c94f00; --on-accent:#160a00; --ember:#ffb066;
+  --display:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.4;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--ember);outline-offset:3px}
+[hidden]{display:none!important}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+#shell{max-width:520px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left));display:flex;flex-direction:column;gap:22px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+header h1{font-size:22px;font-weight:800;letter-spacing:-.01em}
+#dayline{font-size:14px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+
+#stage{display:flex;flex-direction:column;align-items:center;gap:18px}
+#timerBtn{width:min(82vw,330px);aspect-ratio:1;border-radius:50%;border:0;background:var(--accent);color:var(--on-accent);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  box-shadow:0 0 0 10px #ff7a1a22,0 24px 60px -20px var(--accent)}
+#timerBtn .t{font-family:var(--display);font-weight:800;font-size:clamp(64px,22vw,92px);line-height:1;font-variant-numeric:tabular-nums}
+#timerBtn .l{font-weight:700;font-size:24px;letter-spacing:.02em;text-transform:uppercase}
+#timerBtn.running{background:var(--bg);color:var(--accent);box-shadow:inset 0 0 0 8px var(--accent),0 0 0 0 #ff7a1a55;animation:pulse 1.8s ease-out infinite}
+#timerBtn.done{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 4px var(--accent-deep)}
+@keyframes pulse{to{box-shadow:inset 0 0 0 8px var(--accent),0 0 0 26px #ff7a1a00}}
+@media (prefers-reduced-motion:reduce){#timerBtn.running{animation:none}}
+#msg{font-family:var(--display);font-weight:500;font-size:25px;line-height:1.2;text-align:center;text-wrap:balance;margin:0;min-height:60px;color:var(--ember)}
+.row{display:flex;gap:10px;width:100%}
+.btn{min-height:64px;border-radius:18px;border:1px solid var(--line);background:var(--surface);padding:12px 18px;font-weight:700;font-size:19px}
+.btn.primary{flex:1;background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn:disabled{opacity:.5}
+
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 10px;text-align:center}
+.tile b{display:block;font-family:var(--display);font-size:25px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--accent)}
+.tile span{font-size:13px;color:var(--muted);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+.card h2{font-size:18px;margin-bottom:12px}
+svg text{font-family:var(--body);font-size:9px;fill:var(--muted);font-variant-numeric:tabular-nums}
+.grid-l{stroke:var(--line);stroke-width:1}
+.bar{fill:var(--accent)}
+.bar.zero{fill:var(--line)}
+.bar.today{fill:var(--ember)}
+.logs{list-style:none;margin:0;padding:0}
+.logs li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.logs li:first-child{border-top:0;padding-top:0}
+.logs .w{flex:1;min-width:0}
+.logs .w b{font-size:20px;font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.del{border:1px solid var(--line);background:none;border-radius:12px;min-height:46px;padding:6px 14px;font-weight:600;color:var(--ember)}
+.overlay{position:fixed;inset:0;background:#000000d9;display:flex;align-items:center;justify-content:center;padding:18px;z-index:10;overflow-y:auto}
+.pop{background:var(--surface);border:2px solid var(--accent);border-radius:26px;padding:24px 20px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px;text-align:center;margin:auto}
+.pop h2{font-size:28px;font-weight:800;line-height:1.1;color:var(--accent)}
+.pop p{margin:0}
+.pop .big{font-family:var(--display);font-weight:800;font-size:76px;line-height:1;font-variant-numeric:tabular-nums}
+.pop .cmp{font-weight:700;font-size:19px}
+.pop .lead{color:var(--ember);font-family:var(--display);font-size:21px;line-height:1.25;text-wrap:balance}
+.pop ul{margin:0;padding:0;list-style:none;text-align:left;display:flex;flex-direction:column;gap:10px}
+.pop li{padding-left:22px;position:relative}
+.pop li::before{content:"";position:absolute;left:2px;top:.5em;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.pop .col{display:flex;flex-direction:column;gap:10px}
+.foot{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:var(--muted);font-size:14px}
+.foot a{color:var(--muted);font-weight:600;min-height:44px;display:inline-flex;align-items:center}
+.link{background:none;border:0;color:var(--muted);font-weight:600;text-decoration:underline;min-height:44px;align-self:center}
+</style>
+</head>
+<body>
+<div id="shell">
+  <header>
+    <h1>Desafio do Frio</h1>
+    <div id="dayline"></div>
+  </header>
+
+  <section id="stage">
+    <button id="timerBtn" type="button"><span class="t" id="tTime">0:00</span><span class="l" id="tLabel">Iniciar</span></button>
+    <p id="msg" role="status"></p>
+  </section>
+
+  <section id="evo" style="display:flex;flex-direction:column;gap:14px"></section>
+  <div class="foot">
+    <button class="link" id="aboutBtn" type="button">Sobre o desafio</button>
+    <p style="margin:0">Para instalar: no iPhone, Partilhar e depois "Adicionar ao ecrã principal". No Android, menu do navegador e depois "Instalar aplicação".</p>
+    <p style="margin:0">Os registos ficam guardados apenas neste telemóvel.</p>
+    <a href="privacidade.html">Política de privacidade</a>
+  </div>
+</div>
+
+<div class="overlay" id="endPop" hidden>
+  <div class="pop" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <div class="big" id="endTime"></div>
+    <h2 id="endTitle"></h2>
+    <p class="cmp" id="endCmp"></p>
+    <p class="lead" id="endMsg"></p>
+    <div class="col">
+      <button class="btn primary" id="saveBtn" type="button">Guardar registo de hoje</button>
+      <button class="btn" id="discardBtn" type="button">Descartar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="introPop" hidden>
+  <div class="pop" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+    <h2 id="introTitle"></h2>
+    <p id="introLead"></p>
+    <p class="cmp" id="introSub"></p>
+    <ul>
+      <li>Menos stress nas horas a seguir ao frio.</li>
+      <li>Menos faltas por doença: num estudo com 3000 pessoas, quem acabava o duche com água fria faltou 29% menos ao trabalho.</li>
+      <li>Sinais de melhor sono e de melhor qualidade de vida.</li>
+      <li id="introDisc"></li>
+    </ul>
+    <p class="muted small">Resultados de estudos com adultos saudáveis.</p>
+    <p class="lead">O frio é um professor honesto. Entra calmo, sai mais forte.</p>
+    <button class="btn primary" id="introGo" type="button">Aceito o desafio</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

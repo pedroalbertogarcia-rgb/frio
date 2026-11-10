@@ -1,0 +1,33 @@
+DESAFIO DO FRIO - aplicação instalável (PWA)
+
+O QUE ESTÁ NESTA PASTA
+  index.html              a aplicação
+  app.js                  o código da aplicação
+  sw.js                   permite abrir sem rede depois de instalada
+  manifest.webmanifest    nome, cores e ícone da aplicação instalada
+  icon-180/192/512.png    ícones
+  privacidade.html        política de privacidade
+
+ANTES DE PUBLICAR
+  Em privacidade.html, substituir:
+    [NOME DO SERVIÇO DE ALOJAMENTO]   pelo serviço onde a publicares
+    [EMAIL DE CONTACTO]               por um email de contacto
+
+COMO PUBLICAR (precisa de um computador, cerca de 5 minutos)
+  A aplicação tem de estar alojada num endereço https. Opções gratuitas:
+  Netlify, Cloudflare Pages ou GitHub Pages.
+  Em qualquer uma: criar conta, criar um novo site e carregar esta pasta
+  inteira (todos os ficheiros, sem alterar os nomes). O serviço dá um
+  endereço https, que é o link a enviar ao grupo.
+
+COMO CADA PESSOA INSTALA
+  iPhone (Safari):   abrir o link > Partilhar > Adicionar ao ecrã principal
+  Android (Chrome):  abrir o link > menu (três pontos) > Instalar aplicação
+
+AO PUBLICAR ALTERAÇÕES
+  Em sw.js, mudar "frio-v1" para "frio-v2" (e assim por diante), para os
+  telemóveis irem buscar a versão nova.
+
+NOTA
+  Os registos ficam só no telemóvel de cada pessoa. Quem já usou a versão
+  anterior noutro endereço começa do zero nesta.
