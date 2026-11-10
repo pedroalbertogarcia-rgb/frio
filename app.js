@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var START="2026-11-11", END="2026-12-04";
+var START="2026-11-11", END="2026-12-02";
 var OPEN=[
  "O frio é um professor honesto.",
  "Respira. Tu és mais forte do que pensas.",
@@ -67,7 +67,7 @@ var MEDALS=[
  ["t",120,"Aguentar 2 minutos","Mente Calma"],["t",180,"Aguentar 3 minutos","Domínio"],["t",300,"Aguentar 5 minutos","Gelo nas Veias"],
  ["t",600,"Aguentar 10 minutos","Lenda do Frio"],
  ["d",3,"3 dias seguidos com registo","Ritmo"],["d",7,"7 dias seguidos com registo","Semana de Ferro"],
- ["d",14,"14 dias seguidos com registo","Hábito"],["d",24,"24 dias seguidos com registo","Desafio Completo"]
+ ["d",14,"14 dias seguidos com registo","Hábito"],["d",22,"22 dias seguidos com registo","Desafio Completo"]
 ];
 function standing(list){
   var best=0,days={};list.forEach(function(l){if(l.secs>best)best=l.secs;days[l.date]=1});
@@ -167,7 +167,7 @@ function fillEnd(){
 function intro(){
   var t=today(),n=t<=START?TOTAL:(t>END?0:diff(t,END)+1);
   $("introTitle").textContent=n?n+" dias de frio":"Desafio do Frio";
-  $("introLead").textContent="De quarta, 11 de novembro, a 4 de dezembro: um duche ou banho de água fria por dia. Tocas em Iniciar, ficas o tempo que conseguires, paras e guardas o registo.";
+  $("introLead").textContent="De quarta, 11 de novembro, a 2 de dezembro: um duche ou banho de água fria por dia. Tocas em Iniciar, ficas o tempo que conseguires, paras e guardas o registo.";
   $("introSub").textContent=n?"O que podes ganhar em "+n+" dias:":"O que este desafio te dá:";
   $("introDisc").textContent=n?n+" dias seguidos a escolher o difícil: disciplina que fica.":"Dias seguidos a escolher o difícil: disciplina que fica.";
   $("introPop").hidden=false;
