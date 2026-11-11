@@ -95,7 +95,7 @@ function medalCard(){
     return h+'</div>';
   }
   return '<div class="card"><div class="mhead"><h2>Medalhas</h2><div class="mcount">'+got.length+' de '+MEDALS.length+'</div></div>'
-   +'<p class="prize">Os 3 com mais medalhas ganham um almoço em Estocolmo. Os tempos vão ser confirmados.</p>'
+   +'<p class="prize">O primeiro e o segundo com mais medalhas ganham um almoço em Estocolmo. Os tempos vão ser confirmados.</p>'
    +track("t","Tempo no frio",st.best?"O teu melhor tempo: "+clock(st.best)+". Cada marca vale uma medalha.":"Aguenta cada vez mais. Cada marca vale uma medalha.")
    +track("d","Dias seguidos",st.top?"A tua melhor sequência: "+st.top+(st.top===1?" dia":" dias")+". Cada marca vale uma medalha.":"Não falhes um dia. Cada marca vale uma medalha.")
    +'</div>';
@@ -197,23 +197,25 @@ $("saveBtn").addEventListener("click",function(){
 
 /* ---------- evolução ---------- */
 function dayIndex(){var t=today();return t<START?0:(t>END?TOTAL-1:diff(START,t))}
-function niceMax(v){var s=[30,60,120,180,300,600,900,1200,1800,3600,7200,14400];for(var i=0;i<s.length;i++)if(v<=s[i])return s[i];return Math.ceil(v/3600)*3600}
-function axis(s){return s<60?s+" s":(s%60===0?(s/60)+" min":clock(s))}
 function chart(per){
-  var W=320,H=170,L=34,R=6,T=8,B=20,pw=W-L-R,ph=H-T-B,mx=0,t=today();
-  DAYS.forEach(function(d){if((per[d]||0)>mx)mx=per[d]});
-  var top=niceMax(Math.max(mx,30)),bw=pw/TOTAL,o='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Tempo no frio por dia">';
-  [0,.5,1].forEach(function(f){var y=T+ph-ph*f;o+='<line class="grid-l" x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(L-4)+'" y="'+(y+3)+'" text-anchor="end">'+axis(Math.round(top*f))+'</text>'});
+  var W=320,H=150,L=4,R=4,T=20,B=20,pw=W-L-R,ph=H-T-B,mx=0,peak="",t=today();
+  DAYS.forEach(function(d){if((per[d]||0)>mx){mx=per[d];peak=d}});
+  var bw=pw/TOTAL,rx=Math.min(4,(bw-3)/2),o='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Melhor tempo de cada dia">';
   DAYS.forEach(function(d,i){
-    var v=per[d]||0,h=v?Math.max(2,ph*v/top):1.5,x=L+i*bw+1;
-    o+='<rect class="bar'+(v?"":" zero")+(d===t?" today":"")+'" x="'+x.toFixed(1)+'" y="'+(T+ph-h).toFixed(1)+'" width="'+(bw-2).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1.5"><title>'+nice(d)+": "+(v?dur(v):"sem registo")+'</title></rect>';
-    if((i%7===0&&TOTAL-1-i>3)||i===TOTAL-1)o+='<text x="'+(x+(bw-2)/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+nice(d)+'</text>';
+    var v=per[d]||0,x=L+i*bw+1.5,w=bw-3,cx=x+w/2;
+    if(v){
+      var h=Math.max(5,ph*v/mx);
+      o+='<rect class="bar'+(d===t?" today":"")+'" x="'+x.toFixed(1)+'" y="'+(T+ph-h).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="'+rx.toFixed(1)+'"><title>'+nice(d)+": "+dur(v)+'</title></rect>';
+      if(d===peak)o+='<text class="peak" x="'+Math.min(W-14,Math.max(14,cx)).toFixed(1)+'" y="'+(T+ph-h-6).toFixed(1)+'" text-anchor="middle">'+clock(v)+'</text>';
+    }else o+='<circle class="dot'+(d===t?" today":"")+'" cx="'+cx.toFixed(1)+'" cy="'+(T+ph-2.5)+'" r="2.5"><title>'+nice(d)+': sem registo</title></circle>';
+    if((i%7===0&&TOTAL-1-i>3)||i===TOTAL-1)o+='<text x="'+Math.min(W-14,Math.max(14,cx)).toFixed(1)+'" y="'+(H-5)+'" text-anchor="middle">'+nice(d)+'</text>';
   });
   return o+'</svg>';
 }
 function render(){
   var t=today(),per={},tot=0,best=0;
-  logs.forEach(function(l){per[l.date]=(per[l.date]||0)+l.secs;tot+=l.secs;if(l.secs>best)best=l.secs});
+  logs.forEach(function(l){if(l.secs>(per[l.date]||0))per[l.date]=l.secs;if(l.secs>best)best=l.secs});
+  Object.keys(per).forEach(function(d){tot+=per[d]});
   var c=per[t]?t:addDays(t,-1),streak=0;while(per[c]){streak++;c=addDays(c,-1)}
   $("dayline").textContent=t<START?"Começa quarta, 11 nov":(t>END?"Desafio concluído":"Dia "+(dayIndex()+1)+" de "+TOTAL);
   var got=earned(logs);
@@ -222,7 +224,7 @@ function render(){
    +'<div class="tile"><b>'+dur(tot)+'</b><span>Total no frio</span></div>'
    +'<div class="tile"><b>'+(best?clock(best):"–")+'</b><span>Melhor tempo</span></div>'
    +'<div class="tile"><b>'+streak+'</b><span>Dias seguidos</span></div></div>'
-   +'<div class="card"><h2>Tempo no frio por dia</h2>'+chart(per)+'</div>'
+   +'<div class="card"><h2>Melhor tempo de cada dia</h2>'+chart(per)+'</div>'
    +medalCard()
    +'<div class="card"><h2>Registos</h2>';
   if(!list.length)h+='<p class="muted" style="margin:0">Ainda sem registos. O primeiro é o mais difícil.</p>';

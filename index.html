@@ -59,10 +59,11 @@ header h1{font-size:22px;font-weight:800;letter-spacing:-.01em}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
 .card h2{font-size:18px;margin-bottom:12px}
 svg text{font-family:var(--body);font-size:9px;fill:var(--muted);font-variant-numeric:tabular-nums}
-.grid-l{stroke:var(--line);stroke-width:1}
 .bar{fill:var(--accent)}
-.bar.zero{fill:var(--line)}
 .bar.today{fill:var(--ember)}
+.dot{fill:var(--line)}
+.dot.today{fill:var(--accent-deep)}
+svg text.peak{fill:var(--accent);font-weight:700;font-size:11px}
 .logs{list-style:none;margin:0;padding:0}
 .logs li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .logs li:first-child{border-top:0;padding-top:0}
@@ -168,7 +169,7 @@ svg text{font-family:var(--body);font-size:9px;fill:var(--muted);font-variant-nu
       <li id="introDisc"></li>
     </ul>
     <p class="muted small">Resultados de estudos com adultos saudáveis.</p>
-    <p class="cmp">Prémio: os 3 com mais medalhas ganham um almoço em Estocolmo, num restaurante escolhido pelos guias.</p>
+    <p class="cmp">Prémio: o primeiro e o segundo com mais medalhas ganham um almoço em Estocolmo, oferecido pelos guias.</p>
     <p>Os tempos vão ser confirmados. Regista só o que fazes.</p>
     <p class="lead">O frio é um professor honesto. Entra calmo, sai mais forte.</p>
     <button class="btn primary" id="introGo" type="button">Aceito o desafio</button>
